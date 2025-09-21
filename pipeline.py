@@ -28,6 +28,9 @@ def err(msg: str) -> None:
     print(f"\n!!! {msg}", file=sys.stderr)
 
 
+"""ETL pipeline functions"""
+
+
 def ingest(infile: pathlib.Path) -> pd.DataFrame:
     try:
         df = pd.read_csv(infile, dtype=DTYPES, parse_dates=["ts"])
@@ -66,20 +69,43 @@ def clean_normalize(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def aggregate(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    df["day"] = df["ts"].dt.date
+    out = (
+        df.groupby(["day", "event_type"], dropna=False)
+        .size()
+        .reset_index(name="event_count")
+        .sort_values(["day", "event_type"])
+        .reset_index(drop=True)
+    )
+
+    log(f"Aggregated to {len(out):,} rows (days * event_types)")
+    return out
+
+
+def save(df: pd.DataFrame, outdir: pathlib.Path) -> pathlib.Path:
+    outdir.mkdir(parents=True, exist_ok=True)
+    outfile = outdir / f"summary_{TIMESTAMP}.csv"
+    df.to_csv(outfile, index=False)
+    log(f"Wrote {outfile}")
+    return outfile
+
+
+"""Top-level run function to manage logic flow through ETL funcs"""
+
+
 def run(infile: pathlib.Path, outdir: pathlib.Path) -> pathlib.Path:
     # Extract: get dataframe from infile
     df = ingest(infile)
     log(f"Ingested {len(df):,} rows with columns {list(df.columns)}")
 
-    # Transform: clean and normalize data
+    # Transform: clean, normalize, and aggregate data
     df = clean_normalize(df)
+    log(f"Post-clean rows: {len(df):,}")
+    summary = aggregate(df)
 
-    # Load: write transformed data to outfile
-    outdir.mkdir(parents=True, exist_ok=True)
-    outfile = outdir / f"ingested_{TIMESTAMP}.csv"
-    df.to_csv(outfile, index=False)
-
-    return outfile
+    return save(summary, outdir)
 
 
 def main() -> int:
