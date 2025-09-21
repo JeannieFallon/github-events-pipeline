@@ -28,9 +28,6 @@ def err(msg: str) -> None:
     print(f"\n!!! {msg}", file=sys.stderr)
 
 
-"""Use pandas to get data frame from input CSV file"""
-
-
 def ingest(infile: pathlib.Path) -> pd.DataFrame:
     try:
         df = pd.read_csv(infile, dtype=DTYPES, parse_dates=["ts"])
@@ -47,21 +44,42 @@ def ingest(infile: pathlib.Path) -> pd.DataFrame:
     return df
 
 
-"""Call ingest, manage outdir creation, and write data frame to outfile"""
+def clean_normalize(df: pd.DataFrame) -> pd.DataFrame:
+    before = len(df)
+
+    # Make sure timestamp is datetime
+    if not pd.api.types.is_datetime64_any_dtype(df["ts"]):
+        df = df.copy()
+        df["ts"] = pd.to_datetime(df["ts"], errors="coerce")
+
+    # Drop incomplete rows (missing required cols)
+    df = df.dropna(subset=list(COLS)).copy()
+
+    # Normalize by transforming to lowercase and stripping whitespace
+    df["repo"] = df["repo"].str.strip().str.lower()
+    df["event_type"] = df["event_type"].str.strip()
+
+    after = len(df)
+    dropped = before - after
+    log(f"Cleaned: kept {after:,} rows (dropped {dropped:,})")
+
+    return df
 
 
 def run(infile: pathlib.Path, outdir: pathlib.Path) -> pathlib.Path:
+    # Extract: get dataframe from infile
     df = ingest(infile)
     log(f"Ingested {len(df):,} rows with columns {list(df.columns)}")
 
+    # Transform: clean and normalize data
+    df = clean_normalize(df)
+
+    # Load: write transformed data to outfile
     outdir.mkdir(parents=True, exist_ok=True)
     outfile = outdir / f"ingested_{TIMESTAMP}.csv"
     df.to_csv(outfile, index=False)
 
     return outfile
-
-
-"""Handle basic arg parsing"""
 
 
 def main() -> int:
@@ -73,6 +91,7 @@ def main() -> int:
 
     log(f"Running pipeline for {args.infile} . . .")
     try:
+        # Run ETL data pipeline
         outfile = run(args.infile, args.outdir)
     except (ValueError, FileNotFoundError) as e:
         err(str(e))
