@@ -5,14 +5,11 @@ RUFF	:= $(VENV)/bin/ruff
 MYPY	:= $(VENV)/bin/mypy
 PYTEST	:= $(VENV)/bin/pytest
 
-OUTDIR	:= events
+OUTDIR	:= exports
 
-.PHONY: events run test fmt lint type clean help
+.PHONY: run test fmt lint type clean help
 
-events:
-	@mkdir -p events
-
-run: events
+run:
 	$(PY) pipeline.py
 
 test:
