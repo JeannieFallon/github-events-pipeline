@@ -21,6 +21,7 @@ if ${IS_NEW}; then
     echo "Installing Python pacakges . . ."
     python -m pip install -U pip
     pip install -r requirements.txt
+    pip install -e .
 fi
 
 echo "Set-up complete!"

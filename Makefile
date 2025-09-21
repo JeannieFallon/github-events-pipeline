@@ -10,7 +10,7 @@ OUTDIR	:= exports
 .PHONY: run test fmt lint type clean help
 
 run:
-	$(PY) pipeline.py
+	$(PY) -m pipeline.core
 
 test:
 	$(PYTEST) -q
@@ -25,4 +25,4 @@ type:
 	$(MYPY) .
 
 clean:
-	rm -rf $(OUTDIR)/*.csv __pycache__ .pytest_cache
+	rm -rf $(OUTDIR)/*.csv **/__pycache__ .pytest_cache

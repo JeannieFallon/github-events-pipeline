@@ -29,5 +29,5 @@ make test
 ### Custom Input
 - To run pipeline with custom CSV, pass as input param to script:
 ```bash
-python pipeline.py --infile /path/to/file.csv
+python -m pipeline.core --infile /path/to/file.csv
 ```
