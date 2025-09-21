@@ -17,7 +17,7 @@ DTYPES: Final = {
 }
 
 
-"""Logger & error hanlder to standardize script output"""
+"""Logger & error handler to standardize script output"""
 
 
 def log(msg: str) -> None:
@@ -96,7 +96,7 @@ def save(df: pd.DataFrame, outdir: pathlib.Path) -> pathlib.Path:
 
 
 def run(infile: pathlib.Path, outdir: pathlib.Path) -> pathlib.Path:
-    # Extract: get dataframe from infile
+    # Extract: get dataframe from input CSV file
     df = ingest(infile)
     log(f"Ingested {len(df):,} rows with columns {list(df.columns)}")
 
@@ -105,6 +105,7 @@ def run(infile: pathlib.Path, outdir: pathlib.Path) -> pathlib.Path:
     log(f"Post-clean rows: {len(df):,}")
     summary = aggregate(df)
 
+    # Load: save transformed data to output CSV file
     return save(summary, outdir)
 
 
