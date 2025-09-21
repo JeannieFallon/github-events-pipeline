@@ -1,14 +1,18 @@
-# Makefile for github-events-pipeline (macOS/Linux)
-VENV := .venv
-PY   := $(VENV)/bin/python
-BLACK := $(VENV)/bin/black
-RUFF  := $(VENV)/bin/ruff
-MYPY  := $(VENV)/bin/mypy
-PYTEST := $(VENV)/bin/pytest
+VENV	:= .venv
+PY		:= $(VENV)/bin/python
+BLACK	:= $(VENV)/bin/black
+RUFF	:= $(VENV)/bin/ruff
+MYPY	:= $(VENV)/bin/mypy
+PYTEST	:= $(VENV)/bin/pytest
 
-.PHONY: run test fmt lint type clean help
+OUTDIR	:= events
 
-run:
+.PHONY: events run test fmt lint type clean help
+
+events:
+	@mkdir -p events
+
+run: events
 	$(PY) pipeline.py
 
 test:
@@ -24,4 +28,4 @@ type:
 	$(MYPY) .
 
 clean:
-	rm -rf exports/*.csv __pycache__ .pytest_cache
+	rm -rf $(OUTDIR)/*.csv __pycache__ .pytest_cache
