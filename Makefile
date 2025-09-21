@@ -25,4 +25,4 @@ type:
 	$(MYPY) .
 
 clean:
-	rm -rf $(OUTDIR)/*.csv **/__pycache__ .pytest_cache
+	rm -rf $(OUTDIR)/*.csv src/pipeline/__pycache__ .pytest_cache
